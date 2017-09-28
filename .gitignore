@@ -1,0 +1,8 @@
+# Terraform state files
+*.tfstate
+*.tfstate.backup
+*.tfstate.*.backup
+*.tfstate.lock.info
+schojak.tfvars
+.terraform
+jakub.tfvars
