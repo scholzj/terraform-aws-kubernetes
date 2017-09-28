@@ -22,7 +22,7 @@ spec:
       serviceAccountName: cluster-autoscaler
       containers:
         - name: cluster-autoscaler
-          image: gcr.io/google_containers/cluster-autoscaler:v0.6.0
+          image: gcr.io/google_containers/cluster-autoscaler:v0.6.2
           resources:
             limits:
               cpu: 100m
