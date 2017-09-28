@@ -8,12 +8,12 @@ output "ssh_user" {
 }
 
 output "public_ip" {
-    description = "Public IP address"
+    description = "Cluster IP address"
     value = "${aws_eip.master.public_ip}"
 }
 
 output "dns" {
-    description = "Minikube DNS address"
+    description = "Cluster DNS address"
     value = "${aws_route53_record.master.fqdn}"
 }
 
