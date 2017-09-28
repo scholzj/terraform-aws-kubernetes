@@ -34,9 +34,9 @@ Although it can be run on its own, the main value is that it can be included int
 
 ```hcl
 module "kubernetes" {
-  source = "github.com/scholzj/terraform-aws-minikube"
+  source = "scholzj/kubernetes/aws"
 
-   aws_region    = "eu-central-1"
+  aws_region    = "eu-central-1"
   cluster_name  = "aws-kubernetes"
   master_instance_type = "t2.medium"
   worker_instance_type = "t2.medium"
@@ -45,9 +45,37 @@ module "kubernetes" {
   api_access_cidr = ["0.0.0.0/0"]
   min_worker_count = 3
   max_worker_count = 6
-  ...
-  ...
-  ...
+  hosted_zone = "my-domain.com"
+  hosted_zone_private = false
+
+  master_subnet_id = "subnet-8a3517f8"
+  worker_subnet_ids = [		
+      "subnet-8a3517f8",
+      "subnet-9b7853f7",
+      "subnet-8g9sdfv8"
+  ]
+  
+  # Tags
+  tags = {
+    Application = "AWS-Kubernetes"
+  }
+
+  # Tags in a different format for Auto Scaling Group
+  tags2 = [
+    {
+      key                 = "Application"
+      value               = "AWS-Kubernetes"
+      propagate_at_launch = true
+    }
+  ]
+  
+  addons = [
+    "https://raw.githubusercontent.com/scholzj/terraform-aws-kubernetes/master/addons/storage-class.yaml",
+    "https://raw.githubusercontent.com/scholzj/terraform-aws-kubernetes/master/addons/heapster.yaml",
+    "https://raw.githubusercontent.com/scholzj/terraform-aws-kubernetes/master/addons/dashboard.yaml",
+    "https://raw.githubusercontent.com/scholzj/terraform-aws-kubernetes/master/addons/external-dns.yaml",
+    "https://raw.githubusercontent.com/scholzj/terraform-aws-kubernetes/master/addons/autoscaler-dns.yaml"
+  ]
 }
 ```
 
