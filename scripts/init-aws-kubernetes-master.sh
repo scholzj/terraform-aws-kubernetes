@@ -88,6 +88,7 @@ cloudProvider: aws
 kubernetesVersion: v$KUBERNETES_VERSION
 apiServerCertSANs:
 - $DNS_NAME
+- $IP_ADDRESS
 EOF
 
 kubeadm reset
