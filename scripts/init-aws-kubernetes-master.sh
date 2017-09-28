@@ -23,7 +23,7 @@ set -o nounset
 FULL_HOSTNAME="$(curl -s http://169.254.169.254/latest/meta-data/hostname)"
 
 # Make DNS lowercase
-DNS_NAME=$(echo "${DNS_NAME}" | tr 'A-Z' 'a-z')
+DNS_NAME=$(echo "$DNS_NAME" | tr 'A-Z' 'a-z')
 
 # Install AWS CLI client
 yum install -y epel-release
@@ -32,7 +32,7 @@ yum install -y awscli
 # Tag subnets
 for SUBNET in $AWS_SUBNETS
 do
-  aws ec2 create-tags --resources ${SUBNET} --tags Key=kubernetes.io/cluster/${CLUSTER_NAME},Value=shared --region ${AWS_REGION}
+  aws ec2 create-tags --resources $SUBNET --tags Key=kubernetes.io/cluster/$CLUSTER_NAME,Value=shared --region $AWS_REGION
 done
 
 # Install docker
@@ -53,7 +53,7 @@ gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg
         https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 EOF
 setenforce 0
-yum install -y kubelet-${KUBERNETES_VERSION} kubeadm-${KUBERNETES_VERSION} kubernetes-cni
+yum install -y kubelet-$KUBERNETES_VERSION kubeadm-$KUBERNETES_VERSION kubernetes-cni
 
 # Fix kubelet configuration
 sed -i 's/--cgroup-driver=systemd/--cgroup-driver=cgroupfs/g' /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
@@ -82,12 +82,12 @@ cat >/tmp/kubeadm.yaml <<EOF
 apiVersion: kubeadm.k8s.io/v1alpha1
 kind: MasterConfiguration
 nodeName: $FULL_HOSTNAME
-token: ${KUBEADM_TOKEN}
+token: $KUBEADM_TOKEN
 tokenTTL: 0
 cloudProvider: aws
-kubernetesVersion: v${KUBERNETES_VERSION}
+kubernetesVersion: v$KUBERNETES_VERSION
 apiServerCertSANs:
-- ${DNS_NAME}
+- $DNS_NAME
 EOF
 
 kubeadm reset
@@ -107,7 +107,7 @@ kubectl create clusterrolebinding admin-cluster-binding --clusterrole=cluster-ad
 export KUBECONFIG_OUTPUT=/home/centos/kubeconfig
 kubeadm alpha phase kubeconfig client-certs \
   --client-name admin \
-  --server "https://${DNS_NAME}:6443" \
+  --server "https://$DNS_NAME:6443" \
   > $KUBECONFIG_OUTPUT
 chown centos:centos $KUBECONFIG_OUTPUT
 chmod 0600 $KUBECONFIG_OUTPUT
