@@ -4,24 +4,23 @@ set -o verbose
 set -o errexit
 set -o pipefail
 
-if [ -z "$KUBERNETES_VERSION" ]; then
-  KUBERNETES_VERSION="1.7.5"
-fi
-
-if [ -z "$CLUSTER_NAME" ]; then
-  CLUSTER_NAME="aws-kubernetes"
-fi
-
-if [ -z "$AWS_SUBNETS" ]; then
-  AWS_SUBNETS="$(curl http://169.254.169.254/latest/meta-data/network/interfaces/macs/$(curl http://169.254.169.254/latest/meta-data/mac)/subnet-id)"
-fi
+export KUBEADM_TOKEN=${kubeadm_token}
+export DNS_NAME=${dns_name}
+export IP_ADDRESS=${ip_address}
+export CLUSTER_NAME=${cluster_name}
+export ASG_NAME=${asg_name}
+export ASG_MIN_NODES="${asg_min_nodes}"
+export ASG_MAX_NODES="${asg_max_nodes}"
+export AWS_REGION=${aws_region}
+export AWS_SUBNETS="${aws_subnets}"
+export ADDONS="${addons}"
+export KUBERNETES_VERSION="1.7.5"
 
 # Set this only after setting the defaults
 set -o nounset
 
-# Set fully qualified hostname
-# This is needed to match the hostname expected by kubeadm an the hostname used by kubelet
-hostname $(hostname -f)
+# We needed to match the hostname expected by kubeadm an the hostname used by kubelet
+FULL_HOSTNAME="$(curl -s http://169.254.169.254/latest/meta-data/hostname)"
 
 # Make DNS lowercase
 DNS_NAME=$(echo "${DNS_NAME}" | tr 'A-Z' 'a-z')
@@ -82,7 +81,9 @@ cat >/tmp/kubeadm.yaml <<EOF
 ---
 apiVersion: kubeadm.k8s.io/v1alpha1
 kind: MasterConfiguration
+nodeName: $FULL_HOSTNAME
 token: ${KUBEADM_TOKEN}
+tokenTTL: 0
 cloudProvider: aws
 kubernetesVersion: v${KUBERNETES_VERSION}
 apiServerCertSANs:
@@ -97,16 +98,25 @@ rm /tmp/kubeadm.yaml
 export KUBECONFIG=/etc/kubernetes/admin.conf
 
 # Install calico
-kubectl apply -f https://s3.amazonaws.com/scholzj-kubernetes/cluster/calico.yaml
+kubectl apply -f /tmp/calico.yaml
 
 # Allow the user to administer the cluster
 kubectl create clusterrolebinding admin-cluster-binding --clusterrole=cluster-admin --user=admin
 
-# Prepare the kubectl config file for download to client
+# Prepare the kubectl config file for download to client (DNS)
 export KUBECONFIG_OUTPUT=/home/centos/kubeconfig
 kubeadm alpha phase kubeconfig client-certs \
   --client-name admin \
   --server "https://${DNS_NAME}:6443" \
+  > $KUBECONFIG_OUTPUT
+chown centos:centos $KUBECONFIG_OUTPUT
+chmod 0600 $KUBECONFIG_OUTPUT
+
+# Prepare the kubectl config file for download to client (IP address)
+export KUBECONFIG_OUTPUT=/home/centos/kubeconfig_ip
+kubeadm alpha phase kubeconfig client-certs \
+  --client-name admin \
+  --server "https://$IP_ADDRESS:6443" \
   > $KUBECONFIG_OUTPUT
 chown centos:centos $KUBECONFIG_OUTPUT
 chmod 0600 $KUBECONFIG_OUTPUT

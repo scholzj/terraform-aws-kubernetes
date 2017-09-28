@@ -170,6 +170,73 @@ resource "aws_security_group_rule" "allow_api_from_cidr" {
 }
 
 ##########
+# Bootstraping scripts
+##########
+
+data "template_file" "init_master" {
+  template = "${file("${path.module}/scripts/init-aws-kubernetes-master.sh")}"
+
+  vars {
+    kubeadm_token = "${module.kubeadm-token.token}"
+    dns_name      = "${var.cluster_name}.${var.hosted_zone}"
+    ip_address    = "${aws_eip.master.public_ip}"
+    cluster_name  = "${var.cluster_name}"
+    addons        = "${join(" ", var.addons)}"
+    aws_region    = "${var.aws_region}"
+    asg_name      = "${var.cluster_name}-nodes"
+    asg_min_nodes = "${var.min_worker_count}"
+    asg_max_nodes = "${var.max_worker_count}"
+    aws_subnets   = "${join(" ", var.worker_subnet_ids)}"
+
+  }
+}
+
+data "template_file" "init_node" {
+  template = "${file("${path.module}/scripts/init-aws-kubernetes-node.sh")}"
+
+  vars {
+    kubeadm_token = "${module.kubeadm-token.token}"
+    dns_name      = "${var.cluster_name}.${var.hosted_zone}"
+  }
+}
+
+data "template_file" "cloud_init_config" {
+    template = "${file("${path.module}/scripts/cloud-init-config.yaml")}"
+
+    vars {
+        calico_yaml = "${base64gzip("${file("${path.module}/scripts/calico.yaml")}")}"
+    }
+}
+
+data "template_cloudinit_config" "master_cloud_init" {
+  gzip          = true
+  base64_encode = true
+
+  part {
+    filename     = "cloud-init-config.yaml"
+    content_type = "text/cloud-config"
+    content      = "${data.template_file.cloud_init_config.rendered}"
+  }
+
+  part {
+    filename     = "init-aws-kubernete-master.sh"
+    content_type = "text/x-shellscript"
+    content      = "${data.template_file.init_master.rendered}"
+  }
+}
+
+data "template_cloudinit_config" "node_cloud_init" {
+  gzip          = true
+  base64_encode = true
+
+  part {
+    filename     = "init-aws-kubernetes-node.sh"
+    content_type = "text/x-shellscript"
+    content      = "${data.template_file.init_node.rendered}"
+  }
+}
+
+##########
 # Keypair
 ##########
 
@@ -226,20 +293,7 @@ resource "aws_instance" "master" {
 
     iam_instance_profile = "${aws_iam_instance_profile.master_profile.name}"
 
-    user_data = <<EOF
-#!/bin/bash
-export KUBEADM_TOKEN=${module.kubeadm-token.token}
-export DNS_NAME=${var.cluster_name}.${var.hosted_zone}
-export CLUSTER_NAME=${var.cluster_name}
-export ASG_NAME=${var.cluster_name}-nodes
-export ASG_MIN_NODES="${var.min_worker_count}"
-export ASG_MAX_NODES="${var.max_worker_count}"
-export AWS_REGION=${var.aws_region}
-export AWS_SUBNETS="${join(" ", var.worker_subnet_ids)}"
-export ADDONS="${join(" ", var.addons)}"
-
-curl 	https://s3.amazonaws.com/scholzj-kubernetes/cluster/init-aws-kubernetes-master.sh | bash
-EOF
+    user_data = ${data.template_cloudinit_config.master_cloud_init.rendered}
 
     tags = "${merge(map("Name", join("-", list(var.cluster_name, "master")), format("kubernetes.io/cluster/%v", var.cluster_name), "owned"), var.tags)}"
 
@@ -282,15 +336,7 @@ resource "aws_launch_configuration" "nodes" {
 
   associate_public_ip_address = true
 
-  user_data = <<EOF
-#!/bin/bash
-export KUBEADM_TOKEN=${module.kubeadm-token.token}
-export DNS_NAME=${var.cluster_name}.${var.hosted_zone}
-export CLUSTER_NAME=${var.cluster_name}
-export ADDONS="${join(" ", var.addons)}"
-
-curl 	https://s3.amazonaws.com/scholzj-kubernetes/cluster/init-aws-kubernetes-node.sh | bash
-EOF
+  user_data = ${data.template_cloudinit_config.node_cloud_init.rendered}
 
   root_block_device {
       volume_type = "gp2"

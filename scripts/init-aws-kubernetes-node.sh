@@ -4,16 +4,15 @@ set -o verbose
 set -o errexit
 set -o pipefail
 
-if [ -z "$KUBERNETES_VERSION" ]; then
-  KUBERNETES_VERSION="1.7.5"
-fi
+export KUBEADM_TOKEN=${kubeadm_token}
+export DNS_NAME=${dns_name}
+export KUBERNETES_VERSION="1.7.5"
 
 # Set this only after setting the defaults
 set -o nounset
 
-# Set fully qualified hostname
-# This is needed to match the hostname expected by kubeadm an the hostname used by kubelet
-hostname $(hostname -f)
+# We to match the hostname expected by kubeadm an the hostname used by kubelet
+FULL_HOSTNAME="$(curl -s http://169.254.169.254/latest/meta-data/hostname)"
 
 # Make DNS lowercase
 DNS_NAME=$(echo "${DNS_NAME}" | tr 'A-Z' 'a-z')
@@ -60,4 +59,4 @@ if cat /etc/*release | grep ^NAME= | grep CentOS ; then
 fi
 
 kubeadm reset
-kubeadm join --token ${KUBEADM_TOKEN} ${DNS_NAME}:6443
+kubeadm join --token ${KUBEADM_TOKEN} --node-name ${FULL_HOSTNAME} ${DNS_NAME}:6443
