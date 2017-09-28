@@ -30,7 +30,7 @@ AWS Kubernetes is a Kubernetes cluster deployed using [Kubeadm](https://kubernet
 
 ## Including the module
 
-Although it can be run on its own, the main value is that it can be included into another Terraform configuration which is using Kubeadm.
+Although it can be run on its own, the main value is that it can be included into another Terraform configuration.
 
 ```hcl
 module "kubernetes" {
