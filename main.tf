@@ -293,7 +293,7 @@ resource "aws_instance" "master" {
 
     iam_instance_profile = "${aws_iam_instance_profile.master_profile.name}"
 
-    user_data = ${data.template_cloudinit_config.master_cloud_init.rendered}
+    user_data = "${data.template_cloudinit_config.master_cloud_init.rendered}"
 
     tags = "${merge(map("Name", join("-", list(var.cluster_name, "master")), format("kubernetes.io/cluster/%v", var.cluster_name), "owned"), var.tags)}"
 
@@ -302,8 +302,6 @@ resource "aws_instance" "master" {
 	      volume_size = "50"
 	      delete_on_termination = true
     }
-
-    depends_on = ["data.template_file.kubeadm_token"]
 
     lifecycle {
       ignore_changes = [
@@ -336,7 +334,7 @@ resource "aws_launch_configuration" "nodes" {
 
   associate_public_ip_address = true
 
-  user_data = ${data.template_cloudinit_config.node_cloud_init.rendered}
+  user_data = "${data.template_cloudinit_config.node_cloud_init.rendered}"
 
   root_block_device {
       volume_type = "gp2"
