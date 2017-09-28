@@ -8,6 +8,14 @@ provider "aws" {
 }
 
 #####
+# Generate kubeadm token
+#####
+
+module "kubeadm-token" {
+  source = "scholzj/kubeadm-token/random"
+}
+
+#####
 # Security Group
 #####
 
@@ -124,7 +132,7 @@ resource "aws_instance" "master" {
 
     user_data = <<EOF
 #!/bin/bash
-export KUBEADM_TOKEN=${data.template_file.kubeadm_token.rendered}
+export KUBEADM_TOKEN=${module.kubeadm-token.token}
 export DNS_NAME=${var.cluster_name}.${var.hosted_zone}
 export CLUSTER_NAME=${var.cluster_name}
 export ASG_NAME=${var.cluster_name}-nodes
@@ -180,7 +188,7 @@ resource "aws_launch_configuration" "nodes" {
 
   user_data = <<EOF
 #!/bin/bash
-export KUBEADM_TOKEN=${data.template_file.kubeadm_token.rendered}
+export KUBEADM_TOKEN=${module.kubeadm-token.token}
 export DNS_NAME=${var.cluster_name}.${var.hosted_zone}
 export CLUSTER_NAME=${var.cluster_name}
 export ADDONS="${join(" ", var.addons)}"
