@@ -346,15 +346,3 @@ resource "aws_route53_record" "master" {
   records = ["${aws_eip.master.public_ip}"]
   ttl     = 300
 }
-
-#####
-# Output
-#####
-
-output "master_dns" {
-    value = "${aws_route53_record.master.fqdn}"
-}
-
-output "copy_config" {
-    value = "To copy the kubectl config file, run: 'scp centos@${aws_route53_record.master.fqdn}:/home/centos/kubeconfig .'"
-}
