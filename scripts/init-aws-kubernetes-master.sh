@@ -14,7 +14,7 @@ export ASG_MAX_NODES="${asg_max_nodes}"
 export AWS_REGION=${aws_region}
 export AWS_SUBNETS="${aws_subnets}"
 export ADDONS="${addons}"
-export KUBERNETES_VERSION="1.7.5"
+export KUBERNETES_VERSION="1.8.0"
 
 # Set this only after setting the defaults
 set -o nounset
@@ -83,7 +83,7 @@ apiVersion: kubeadm.k8s.io/v1alpha1
 kind: MasterConfiguration
 nodeName: $FULL_HOSTNAME
 token: $KUBEADM_TOKEN
-tokenTTL: 0
+tokenTTL: "0"
 cloudProvider: aws
 kubernetesVersion: v$KUBERNETES_VERSION
 apiServerCertSANs:
@@ -106,18 +106,18 @@ kubectl create clusterrolebinding admin-cluster-binding --clusterrole=cluster-ad
 
 # Prepare the kubectl config file for download to client (DNS)
 export KUBECONFIG_OUTPUT=/home/centos/kubeconfig
-kubeadm alpha phase kubeconfig client-certs \
+kubeadm alpha phase kubeconfig user \
   --client-name admin \
-  --server "https://$DNS_NAME:6443" \
+  --apiserver-advertise-address $DNS_NAME \
   > $KUBECONFIG_OUTPUT
 chown centos:centos $KUBECONFIG_OUTPUT
 chmod 0600 $KUBECONFIG_OUTPUT
 
 # Prepare the kubectl config file for download to client (IP address)
 export KUBECONFIG_OUTPUT=/home/centos/kubeconfig_ip
-kubeadm alpha phase kubeconfig client-certs \
+kubeadm alpha phase kubeconfig user \
   --client-name admin \
-  --server "https://$IP_ADDRESS:6443" \
+  --apiserver-advertise-address $IP_ADDRESS \
   > $KUBECONFIG_OUTPUT
 chown centos:centos $KUBECONFIG_OUTPUT
 chmod 0600 $KUBECONFIG_OUTPUT
