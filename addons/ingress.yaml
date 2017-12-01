@@ -84,6 +84,15 @@ rules:
   verbs:
   - update
   - get
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  resourceNames:
+  - ingress-controller-leader-nginx
+  verbs:
+  - update
+  - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
@@ -142,6 +151,16 @@ metadata:
   namespace: kube-system
 data:
   use-proxy-protocol: "true"
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: ingress-controller-leader-nginx
+  labels:
+    k8s-addon: ingress-nginx.addons.k8s.io
+  namespace: kube-system
+data:
+  # Nothing to include
 ---
 kind: Deployment
 apiVersion: extensions/v1beta1
