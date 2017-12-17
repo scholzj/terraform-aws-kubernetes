@@ -6,7 +6,7 @@ set -o pipefail
 
 export KUBEADM_TOKEN=${kubeadm_token}
 export DNS_NAME=${dns_name}
-export KUBERNETES_VERSION="1.8.5"
+export KUBERNETES_VERSION="1.9.0"
 
 # Set this only after setting the defaults
 set -o nounset
@@ -59,4 +59,4 @@ if cat /etc/*release | grep ^NAME= | grep CentOS ; then
 fi
 
 kubeadm reset
-kubeadm join --token $KUBEADM_TOKEN --node-name $FULL_HOSTNAME $DNS_NAME:6443
+kubeadm join --token $KUBEADM_TOKEN --node-name $FULL_HOSTNAME $DNS_NAME:6443 --discovery-token-unsafe-skip-ca-verification
