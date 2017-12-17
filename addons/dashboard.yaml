@@ -70,6 +70,9 @@ spec:
       - name: tmp-volume
         emptyDir: {}
       serviceAccountName: kubernetes-dashboard
+      tolerations:
+      - key: node-role.kubernetes.io/master
+        effect: NoSchedule
 ---
 kind: Service
 apiVersion: v1
