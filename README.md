@@ -5,17 +5,18 @@ AWS Kubernetes is a Kubernetes cluster deployed using [Kubeadm](https://kubernet
 <!-- TOC -->
 
 - [AWS Kubernetes](#aws-kubernetes)
-    - [Updates](#updates)
-    - [Prerequisites and dependencies](#prerequisites-and-dependencies)
-    - [Including the module](#including-the-module)
-    - [Addons](#addons)
-    - [Custom addons](#custom-addons)
-    - [Tagging](#tagging)
+  - [Updates](#updates)
+  - [Prerequisites and dependencies](#prerequisites-and-dependencies)
+  - [Including the module](#including-the-module)
+  - [Addons](#addons)
+  - [Custom addons](#custom-addons)
+  - [Tagging](#tagging)
 
 <!-- /TOC -->
 
 ## Updates
 
+* *22.1.2018:* Update to Kubernetes 1.9.2, Ingres 0.10.0 and Dashboard 1.8.2
 * *6.1.2018:* Update to Kubernetes 1.9.1
 * *17.12.2017:* Update to Kubernetes 1.9.0, update Dashboard, Ingress, Autoscaler and Heapster dependencies
 * *8.12.2017:* Update to Kubernetes 1.8.5
