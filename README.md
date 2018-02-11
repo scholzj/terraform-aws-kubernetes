@@ -16,7 +16,8 @@ AWS Kubernetes is a Kubernetes cluster deployed using [Kubeadm](https://kubernet
 
 ## Updates
 
-* *29.1.2018:* Add automatically tag also to the master subnet
+* *11.2.2018:* Update to Kubernetes 1.9.3 and Cluster Autoscaler to 1.1.1
+* *29.1.2018:* Add `kubernetes.io/cluster/my-kubernetes` tag also to the master subnet
 * *22.1.2018:* Update Calico to 3.0.1
 * *22.1.2018:* Update to Kubernetes 1.9.2, Ingres 0.10.0 and Dashboard 1.8.2
 * *6.1.2018:* Update to Kubernetes 1.9.1
