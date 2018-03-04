@@ -23,7 +23,8 @@
                 "autoscaling:DescribeAutoScalingInstances",
                 "autoscaling:DescribeTags",
                 "autoscaling:SetDesiredCapacity",
-                "autoscaling:TerminateInstanceInAutoScalingGroup"
+                "autoscaling:TerminateInstanceInAutoScalingGroup",
+                "autoscaling:DescribeLaunchConfigurations"
                 ],
             "Resource": "*"
         }

@@ -35,8 +35,7 @@ spec:
             - --cloud-provider=aws
             - --skip-nodes-with-local-storage=false
             - --nodes=${ASG_MIN_NODES}:${ASG_MAX_NODES}:${ASG_NAME}
-            #- --scale-down-delay=10m
-            #- --skip-nodes-with-system-pods=false
+            - --alsologtostderr
           env:
             - name: AWS_REGION
               value: ${AWS_REGION}
@@ -90,7 +89,6 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - nodes
   - pods
   - services
   - replicationcontrollers
@@ -99,6 +97,15 @@ rules:
   verbs:
   - watch
   - list
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - get
+  - watch
+  - list
+  - update
 - apiGroups:
   - ""
   resources:
