@@ -161,6 +161,12 @@ rules:
 - apiGroups:
   - ""
   resources:
+  - events
+  verbs:
+  - patch
+- apiGroups:
+  - ""
+  resources:
   - configmaps
   resourceNames:
   - cluster-autoscaler-status
