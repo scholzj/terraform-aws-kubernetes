@@ -372,6 +372,10 @@ resource "aws_autoscaling_group" "nodes" {
   }]
 
   tags = ["${var.tags2}"]
+
+  lifecycle {
+    ignore_changes = ["desired_capacity"]
+  }  
 }
 
 #####
