@@ -6,7 +6,7 @@ set -o pipefail
 
 export KUBEADM_TOKEN=${kubeadm_token}
 export DNS_NAME=${dns_name}
-export KUBERNETES_VERSION="1.9.6"
+export KUBERNETES_VERSION="1.10.0"
 
 # Set this only after setting the defaults
 set -o nounset
