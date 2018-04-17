@@ -2,6 +2,8 @@ module "kubernetes" {
   source = "scholzj/kubernetes/aws"
 
   aws_region    = "eu-central-1"
+  aws_role_arn  = "arn:aws:iam::12345678900:role/terraform"
+
   cluster_name  = "aws-kubernetes"
   master_instance_type = "t2.medium"
   worker_instance_type = "t2.medium"

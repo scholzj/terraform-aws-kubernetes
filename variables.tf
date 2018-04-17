@@ -1,3 +1,7 @@
+variable "aws_role_arn" {
+    description = "Account Role ARN where Cloud Formation is created"
+}
+
 variable "aws_region" {
     description = "Region where Cloud Formation is created"
     default     = "eu-central-1"
