@@ -5,6 +5,7 @@
 # Retrieve AWS credentials from env variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
 provider "aws" {
   region = "${var.aws_region}"
+  profile = "${var.aws_profile}"
 }
 
 #####
@@ -392,6 +393,6 @@ resource "aws_route53_record" "master" {
   zone_id = "${data.aws_route53_zone.dns_zone.zone_id}"
   name    = "${var.cluster_name}.${var.hosted_zone}"
   type    = "A"
-  records = ["${aws_eip.master.public_ip}"]
+  records = ["${aws_instance.master.private_ip}"]
   ttl     = 300
 }
