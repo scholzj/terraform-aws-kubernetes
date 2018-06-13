@@ -5,6 +5,7 @@
 # Retrieve AWS credentials from env variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
 provider "aws" {
   region = "${var.aws_region}"
+  profile = "${var.aws_profile}"
 }
 
 #####
@@ -323,7 +324,7 @@ resource "aws_eip_association" "master_assoc" {
 #####
 
 resource "aws_launch_configuration" "nodes" {
-  name          = "${var.cluster_name}-nodes"
+  name          = "${var.cluster_name}-nodes-${data.aws_ami.centos7.id}"
   image_id      = "${data.aws_ami.centos7.id}"
   instance_type = "${var.worker_instance_type}"
   key_name = "${aws_key_pair.keypair.key_name}"
@@ -353,7 +354,7 @@ resource "aws_launch_configuration" "nodes" {
 
 resource "aws_autoscaling_group" "nodes" {
   vpc_zone_identifier = ["${var.worker_subnet_ids}"]
-  
+
   name                      = "${var.cluster_name}-nodes"
   max_size                  = "${var.max_worker_count}"
   min_size                  = "${var.min_worker_count}"
@@ -376,7 +377,7 @@ resource "aws_autoscaling_group" "nodes" {
 
   lifecycle {
     ignore_changes = ["desired_capacity"]
-  }  
+  }
 }
 
 #####
@@ -392,6 +393,6 @@ resource "aws_route53_record" "master" {
   zone_id = "${data.aws_route53_zone.dns_zone.zone_id}"
   name    = "${var.cluster_name}.${var.hosted_zone}"
   type    = "A"
-  records = ["${aws_eip.master.public_ip}"]
+  records = ["${aws_instance.master.private_ip}"]
   ttl     = 300
 }

@@ -12,6 +12,11 @@ output "public_ip" {
     value = "${aws_eip.master.public_ip}"
 }
 
+output "private_ip" {
+    description = "Cluster private IP address"
+    value = "${aws_instance.master.private_ip}"
+}
+
 output "dns" {
     description = "Cluster DNS address"
     value = "${aws_route53_record.master.fqdn}"
