@@ -2,11 +2,10 @@
 # AWS Prodvider
 #####
 
-# Retrieve AWS credentials from env variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
-provider "aws" {
-  region = "${var.aws_region}"
-  profile = "${var.aws_profile}"
-}
+####
+# Please don't add the AWS provider so that users of this module will have implicit provider inheritance work correctly
+# https://www.terraform.io/docs/modules/usage.html
+####
 
 #####
 # Generate kubeadm token
