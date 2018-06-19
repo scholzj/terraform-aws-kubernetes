@@ -383,13 +383,8 @@ resource "aws_autoscaling_group" "nodes" {
 # DNS record
 #####
 
-data "aws_route53_zone" "dns_zone" {
-  name         = "${var.hosted_zone}."
-  private_zone = "${var.hosted_zone_private}"
-}
-
 resource "aws_route53_record" "master" {
-  zone_id = "${data.aws_route53_zone.dns_zone.zone_id}"
+  zone_id = "${var.hosted_zone_id}"
   name    = "${var.cluster_name}.${var.hosted_zone}"
   type    = "A"
   records = ["${aws_instance.master.private_ip}"]

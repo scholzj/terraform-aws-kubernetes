@@ -63,6 +63,10 @@ variable "hosted_zone" {
     description = "Hosted zone to be used for the alias"
 }
 
+variable "hosted_zone_id" {
+    description = "Hosted zone id to be used"
+}
+
 variable "hosted_zone_private" {
     description = "Is the hosted zone public or private"
     default = false
