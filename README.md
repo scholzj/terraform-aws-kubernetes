@@ -16,6 +16,7 @@ AWS Kubernetes is a Kubernetes cluster deployed using [Kubeadm](https://kubernet
 
 ## Updates
 
+* *28.6.2018:* Fix error when disabling already disabled SE Linux ([#1](https://github.com/scholzj/terraform-aws-minikube/pull/1))
 * *23.6.2018:* Update to Kubernetes 1.10.5
 * *8.6.2018:* Update to Kubernetes 1.10.4
 * *27.5.2018:* Update to Kubernetes 1.10.3 and Cluster Autoscaler 1.2.2
