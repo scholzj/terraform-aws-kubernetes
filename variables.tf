@@ -3,6 +3,11 @@ variable "aws_region" {
     default     = "eu-central-1"
 }
 
+variable "aws_profile" {
+    description = "AWS credentials profile to use"
+    default = "default"
+}
+
 variable "cluster_name" {
     description = "Name of the AWS Kubernetes cluster - will be used to name all created resources"
 }

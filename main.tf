@@ -5,6 +5,7 @@
 # Retrieve AWS credentials from env variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
 provider "aws" {
   region = "${var.aws_region}"
+  profile = "${var.aws_profile}"
 }
 
 #####
@@ -178,7 +179,7 @@ data "template_file" "init_master" {
 
   vars {
     kubeadm_token = "${module.kubeadm-token.token}"
-    dns_name      = "${var.cluster_name}.${var.hosted_zone}"
+    dns_name      = "internal.${var.cluster_name}.${var.hosted_zone}"
     ip_address    = "${aws_eip.master.public_ip}"
     cluster_name  = "${var.cluster_name}"
     addons        = "${join(" ", var.addons)}"
@@ -187,7 +188,6 @@ data "template_file" "init_master" {
     asg_min_nodes = "${var.min_worker_count}"
     asg_max_nodes = "${var.max_worker_count}"
     aws_subnets   = "${join(" ", concat(var.worker_subnet_ids, list(var.master_subnet_id)))}"
-
   }
 }
 
@@ -196,7 +196,7 @@ data "template_file" "init_node" {
 
   vars {
     kubeadm_token = "${module.kubeadm-token.token}"
-    dns_name      = "${var.cluster_name}.${var.hosted_zone}"
+    dns_name      = "internal.${var.cluster_name}.${var.hosted_zone}"
   }
 }
 
@@ -313,6 +313,12 @@ resource "aws_instance" "master" {
     }
 }
 
+resource "aws_network_interface" "master_private_interfaces" {
+  count           = "${length(var.worker_subnet_ids)}"
+  security_groups = ["${aws_security_group.kubernetes.id}"]
+  subnet_id       = "${var.worker_subnet_ids[count.index]}"
+ }
+
 resource "aws_eip_association" "master_assoc" {
   instance_id   = "${aws_instance.master.id}"
   allocation_id = "${aws_eip.master.id}"
@@ -393,5 +399,13 @@ resource "aws_route53_record" "master" {
   name    = "${var.cluster_name}.${var.hosted_zone}"
   type    = "A"
   records = ["${aws_eip.master.public_ip}"]
+  ttl     = 300
+}
+
+resource "aws_route53_record" "master-internal" {
+  zone_id = "${data.aws_route53_zone.dns_zone.zone_id}"
+  name    = "internal.${var.cluster_name}.${var.hosted_zone}"
+  type    = "A"
+  records = ["${aws_network_interface.master_private_interfaces.*.private_ips}"]
   ttl     = 300
 }
