@@ -14,7 +14,7 @@ export ASG_MAX_NODES="${asg_max_nodes}"
 export AWS_REGION=${aws_region}
 export AWS_SUBNETS="${aws_subnets}"
 export ADDONS="${addons}"
-export KUBERNETES_VERSION="1.10.3"
+export KUBERNETES_VERSION="1.10.5"
 
 # Set this only after setting the defaults
 set -o nounset
@@ -52,7 +52,13 @@ repo_gpgcheck=1
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg
         https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 EOF
-setenforce 0
+
+# setenforce returns non zero if already SE Linux is already disabled
+is_enforced=$(getenforce)
+if [[ $is_enforced != "Disabled" ]]; then
+  setenforce 0
+fi
+
 yum install -y kubelet-$KUBERNETES_VERSION kubeadm-$KUBERNETES_VERSION kubernetes-cni
 
 # Fix kubelet configuration
