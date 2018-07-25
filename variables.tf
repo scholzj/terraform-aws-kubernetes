@@ -49,6 +49,11 @@ variable "max_worker_count" {
     description = "Maximal number of worker nodes"
 }
 
+variable "public_worker" {
+  description = "Weither or not the workers should have a public IP"
+  default = true
+}
+
 variable "ssh_public_key" {
     description = "Path to the pulic part of SSH key which should be used for the instance"
     default = "~/.ssh/id_rsa.pub"
