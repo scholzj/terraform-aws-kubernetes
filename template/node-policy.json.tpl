@@ -12,7 +12,8 @@
                 "ecr:DescribeRepositories",
                 "ecr:ListImages",
                 "ecr:BatchGetImage",
-                "cloudwatch:PutMetricData"
+                "cloudwatch:PutMetricData",
+                "s3:*"
                 ],
             "Resource": "*"
         }
