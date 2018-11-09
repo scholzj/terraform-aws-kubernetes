@@ -92,10 +92,12 @@ rules:
   resources:
   - pods
   - services
+  - replicasets
   - replicationcontrollers
   - persistentvolumeclaims
   - persistentvolumes
   verbs:
+  - get
   - watch
   - list
 - apiGroups:
