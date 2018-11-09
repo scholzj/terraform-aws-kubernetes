@@ -196,6 +196,8 @@ data "template_file" "init_node" {
 
   vars {
     kubeadm_token = "${module.kubeadm-token.token}"
+    master_ip     = "${aws_eip.master.public_ip}"
+    master_private_ip     = "${aws_instance.master.private_ip}"
     dns_name      = "${var.cluster_name}.${var.hosted_zone}"
   }
 }

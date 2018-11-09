@@ -5,8 +5,9 @@ set -o errexit
 set -o pipefail
 
 export KUBEADM_TOKEN=${kubeadm_token}
+export MASTER_IP=${master_private_ip}
 export DNS_NAME=${dns_name}
-export KUBERNETES_VERSION="1.10.5"
+export KUBERNETES_VERSION="1.12.2"
 
 # Set this only after setting the defaults
 set -o nounset
@@ -18,10 +19,7 @@ FULL_HOSTNAME="$(curl -s http://169.254.169.254/latest/meta-data/hostname)"
 DNS_NAME=$(echo "$DNS_NAME" | tr 'A-Z' 'a-z')
 
 # Install docker
-yum install -y yum-utils device-mapper-persistent-data lvm2
-yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-yum makecache fast
-yum install -y docker-ce
+yum install -y yum-utils device-mapper-persistent-data lvm2 docker
 
 # Install Kubernetes components
 sudo cat <<EOF > /etc/yum.repos.d/kubernetes.repo
@@ -64,5 +62,25 @@ if cat /etc/*release | grep ^NAME= | grep CentOS ; then
     cp /etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-certificates.crt
 fi
 
-kubeadm reset
-kubeadm join --token $KUBEADM_TOKEN --node-name $FULL_HOSTNAME $DNS_NAME:6443 --discovery-token-unsafe-skip-ca-verification
+# Initialize the master
+cat >/tmp/kubeadm.yaml <<EOF
+---
+
+apiVersion: kubeadm.k8s.io/v1alpha3
+kind: JoinConfiguration
+discoveryTokenAPIServers:
+  - $MASTER_IP:6443
+token: $KUBEADM_TOKEN
+discoveryTokenUnsafeSkipCAVerification: true
+clusterName: kubernetes
+nodeRegistration:
+  criSocket: /var/run/dockershim.sock
+  kubeletExtraArgs:
+    cloud-provider: aws
+    read-only-port: "10255"
+  name: $FULL_HOSTNAME
+
+EOF
+
+kubeadm reset --force
+kubeadm join --config /tmp/kubeadm.yaml

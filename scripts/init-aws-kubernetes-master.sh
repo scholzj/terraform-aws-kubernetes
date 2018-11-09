@@ -14,7 +14,7 @@ export ASG_MAX_NODES="${asg_max_nodes}"
 export AWS_REGION=${aws_region}
 export AWS_SUBNETS="${aws_subnets}"
 export ADDONS="${addons}"
-export KUBERNETES_VERSION="1.10.5"
+export KUBERNETES_VERSION="1.12.2"
 
 # Set this only after setting the defaults
 set -o nounset
@@ -36,10 +36,7 @@ do
 done
 
 # Install docker
-yum install -y yum-utils device-mapper-persistent-data lvm2
-yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-yum makecache fast
-yum install -y docker-ce
+yum install -y yum-utils device-mapper-persistent-data lvm2 docker
 
 # Install Kubernetes components
 sudo cat <<EOF > /etc/yum.repos.d/kubernetes.repo
@@ -85,21 +82,45 @@ fi
 # Initialize the master
 cat >/tmp/kubeadm.yaml <<EOF
 ---
-apiVersion: kubeadm.k8s.io/v1alpha1
-kind: MasterConfiguration
-nodeName: $FULL_HOSTNAME
-token: $KUBEADM_TOKEN
-tokenTTL: "0"
-cloudProvider: aws
-kubernetesVersion: v$KUBERNETES_VERSION
+
+apiVersion: kubeadm.k8s.io/v1alpha3
+kind: InitConfiguration
+bootstrapTokens:
+- groups:
+  - system:bootstrappers:kubeadm:default-node-token
+  token: $KUBEADM_TOKEN
+  ttl: 0s
+  usages:
+  - signing
+  - authentication
+nodeRegistration:
+  criSocket: /var/run/dockershim.sock
+  kubeletExtraArgs:
+    cloud-provider: aws
+    read-only-port: "10255"
+  name: $FULL_HOSTNAME
+  taints:
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/master
+
+---
+
+apiVersion: kubeadm.k8s.io/v1alpha3
+kind: ClusterConfiguration
 apiServerCertSANs:
-- $DNS_NAME
-- $IP_ADDRESS
+  - $DNS_NAME
+  - $IP_ADDRESS
+apiServerExtraArgs:
+  cloud-provider: aws
+clusterName: kubernetes
+controllerManagerExtraArgs:
+  cloud-provider: aws
+kubernetesVersion: v$KUBERNETES_VERSION
+
 EOF
 
-kubeadm reset
+kubeadm reset --force
 kubeadm init --config /tmp/kubeadm.yaml
-rm /tmp/kubeadm.yaml
 
 # Use the local kubectl config for further kubectl operations
 export KUBECONFIG=/etc/kubernetes/admin.conf
@@ -110,15 +131,6 @@ kubectl apply -f /tmp/calico.yaml
 # Allow the user to administer the cluster
 kubectl create clusterrolebinding admin-cluster-binding --clusterrole=cluster-admin --user=admin
 
-# Prepare the kubectl config file for download to client (DNS)
-export KUBECONFIG_OUTPUT=/home/centos/kubeconfig
-kubeadm alpha phase kubeconfig user \
-  --client-name admin \
-  --apiserver-advertise-address $DNS_NAME \
-  > $KUBECONFIG_OUTPUT
-chown centos:centos $KUBECONFIG_OUTPUT
-chmod 0600 $KUBECONFIG_OUTPUT
-
 # Prepare the kubectl config file for download to client (IP address)
 export KUBECONFIG_OUTPUT=/home/centos/kubeconfig_ip
 kubeadm alpha phase kubeconfig user \
@@ -127,6 +139,11 @@ kubeadm alpha phase kubeconfig user \
   > $KUBECONFIG_OUTPUT
 chown centos:centos $KUBECONFIG_OUTPUT
 chmod 0600 $KUBECONFIG_OUTPUT
+
+cp /home/centos/kubeconfig_ip /home/centos/kubeconfig
+sed -i "s/server: https:\/\/$IP_ADDRESS:6443/server: https:\/\/$DNS_NAME:6443/g" /home/centos/kubeconfig
+chown centos:centos /home/centos/kubeconfig
+chmod 0600 /home/centos/kubeconfig
 
 # Load addons
 for ADDON in $ADDONS
