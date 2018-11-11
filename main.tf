@@ -325,7 +325,7 @@ resource "aws_eip_association" "master_assoc" {
 #####
 
 resource "aws_launch_configuration" "nodes" {
-  name          = "${var.cluster_name}-nodes"
+  name_prefix   = "${var.cluster_name}-nodes-"
   image_id      = "${data.aws_ami.centos7.id}"
   instance_type = "${var.worker_instance_type}"
   key_name = "${aws_key_pair.keypair.key_name}"
