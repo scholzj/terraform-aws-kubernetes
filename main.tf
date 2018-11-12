@@ -335,7 +335,7 @@ resource "aws_launch_configuration" "nodes" {
       "${aws_security_group.kubernetes.id}"
   ]
 
-  associate_public_ip_address = true
+  associate_public_ip_address = "${var.public_worker}"
 
   user_data = "${data.template_cloudinit_config.node_cloud_init.rendered}"
 
