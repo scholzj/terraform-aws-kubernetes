@@ -16,6 +16,7 @@ AWS Kubernetes is a Kubernetes cluster deployed using [Kubeadm](https://kubernet
 
 ## Updates
 
+* *12.11.2018:* Make it possible to use only private IPs ([#19](https://github.com/scholzj/terraform-aws-minikube/pull/19))
 * *11.11.2018:* Fix error when updating ASG launch-configurations (#20)
 * *10.11.2018* Update to Kubernetes 1.12.2, Calico 3.3 and addons (Dashboard 1.10.0, Heapster 1.5.4, Ingress 0.20.0, External DNS 0.5.8, Cluster Autoscaler 1.12.1)
 * *28.6.2018:* Fix error when disabling already disabled SE Linux ([#1](https://github.com/scholzj/terraform-aws-minikube/pull/1))
