@@ -1,5 +1,4 @@
 ---
-
 kind: StorageClass
 apiVersion: storage.k8s.io/v1beta1
 metadata:
@@ -10,4 +9,15 @@ provisioner: kubernetes.io/aws-ebs
 parameters:
   type: gp2
   encrypted: "true"
-  #kmsKeyId: "aws/ebs"
+
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1beta1
+metadata:
+  name: hdd
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: kubernetes.io/aws-ebs
+parameters:
+  type: st1
+  encrypted: "true"
