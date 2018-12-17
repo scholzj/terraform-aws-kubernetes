@@ -1,5 +1,7 @@
 #!/bin/bash
 
+exec &> /var/log/init-aws-kubernetes-master.log
+
 set -o verbose
 set -o errexit
 set -o pipefail
@@ -14,7 +16,7 @@ export ASG_MAX_NODES="${asg_max_nodes}"
 export AWS_REGION=${aws_region}
 export AWS_SUBNETS="${aws_subnets}"
 export ADDONS="${addons}"
-export KUBERNETES_VERSION="1.12.3"
+export KUBERNETES_VERSION="1.13.1"
 
 # Set this only after setting the defaults
 set -o nounset
@@ -27,7 +29,8 @@ DNS_NAME=$(echo "$DNS_NAME" | tr 'A-Z' 'a-z')
 
 # Install AWS CLI client
 yum install -y epel-release
-yum install -y awscli
+yum install -y python2-pip
+pip install awscli --upgrade
 
 # Tag subnets
 for SUBNET in $AWS_SUBNETS
@@ -133,7 +136,7 @@ kubectl create clusterrolebinding admin-cluster-binding --clusterrole=cluster-ad
 
 # Prepare the kubectl config file for download to client (IP address)
 export KUBECONFIG_OUTPUT=/home/centos/kubeconfig_ip
-kubeadm alpha phase kubeconfig user \
+kubeadm alpha kubeconfig user \
   --client-name admin \
   --apiserver-advertise-address $IP_ADDRESS \
   > $KUBECONFIG_OUTPUT

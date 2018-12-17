@@ -1,5 +1,7 @@
 #!/bin/bash
 
+exec &> /var/log/init-aws-kubernetes-node.log
+
 set -o verbose
 set -o errexit
 set -o pipefail
@@ -7,7 +9,7 @@ set -o pipefail
 export KUBEADM_TOKEN=${kubeadm_token}
 export MASTER_IP=${master_private_ip}
 export DNS_NAME=${dns_name}
-export KUBERNETES_VERSION="1.12.3"
+export KUBERNETES_VERSION="1.13.1"
 
 # Set this only after setting the defaults
 set -o nounset
@@ -72,7 +74,6 @@ discoveryTokenAPIServers:
   - $MASTER_IP:6443
 token: $KUBEADM_TOKEN
 discoveryTokenUnsafeSkipCAVerification: true
-clusterName: kubernetes
 nodeRegistration:
   criSocket: /var/run/dockershim.sock
   kubeletExtraArgs:
