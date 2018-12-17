@@ -1,81 +1,9 @@
-# Calico Version v3.3.0
-# https://docs.projectcalico.org/v3.3/releases#v3.3.0
+# Calico Version v3.4.0
+# https://docs.projectcalico.org/v3.4/releases#v3.4.0
 # This manifest includes the following component versions:
-#   calico/node:v3.3.0
-#   calico/cni:v3.3.0
-#   calico/kube-controllers:v3.3.0
-
----
-
-kind: ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1beta1
-metadata:
-  name: calico-kube-controllers
-rules:
-  - apiGroups:
-    - ""
-    - extensions
-    resources:
-      - pods
-      - namespaces
-      - networkpolicies
-      - nodes
-      - serviceaccounts
-    verbs:
-      - watch
-      - list
-  - apiGroups:
-    - networking.k8s.io
-    resources:
-      - networkpolicies
-    verbs:
-      - watch
-      - list
----
-kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1beta1
-metadata:
-  name: calico-kube-controllers
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: calico-kube-controllers
-subjects:
-- kind: ServiceAccount
-  name: calico-kube-controllers
-  namespace: kube-system
-
----
-
-kind: ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1beta1
-metadata:
-  name: calico-node
-rules:
-  - apiGroups: [""]
-    resources:
-      - pods
-      - nodes
-      - namespaces
-    verbs:
-      - get
-
----
-
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  name: calico-node
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: calico-node
-subjects:
-- kind: ServiceAccount
-  name: calico-node
-  namespace: kube-system
-
----
+#   calico/node:v3.4.0
+#   calico/cni:v3.4.0
+#   calico/kube-controllers:v3.4.0
 
 # This ConfigMap is used to configure a self-hosted Calico installation.
 kind: ConfigMap
@@ -142,16 +70,16 @@ metadata:
   name: calico-etcd-secrets
   namespace: kube-system
 data:
-  # Populate the following files with etcd TLS configuration if desired, but leave blank if
+  # Populate the following with etcd TLS configuration if desired, but leave blank if
   # not using TLS for etcd.
-  # This self-hosted install expects three files with the following names.  The values
-  # should be base64 encoded strings of the entire contents of each file.
+  # The keys below should be uncommented and the values populated with the base64
+  # encoded contents of each file that would be associated with the TLS data.
+  # Example command for encoding a file contents: cat <file> | base64 -w 0
   # etcd-key: null
   # etcd-cert: null
   # etcd-ca: null
 
 ---
-
 # This manifest installs the calico/node container, as well
 # as the Calico CNI plugins and network config on
 # each master and worker node in a Kubernetes cluster.
@@ -197,12 +125,50 @@ spec:
       # Minimize downtime during a rolling upgrade or deletion; tell Kubernetes to do a "force
       # deletion": https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods.
       terminationGracePeriodSeconds: 0
+      initContainers:
+        # This container installs the Calico CNI binaries
+        # and CNI network config file on each node.
+        - name: install-cni
+          image: quay.io/calico/cni:v3.4.0
+          command: ["/install-cni.sh"]
+          env:
+            # Name of the CNI config file to create.
+            - name: CNI_CONF_NAME
+              value: "10-calico.conflist"
+            # The CNI network config to install on each node.
+            - name: CNI_NETWORK_CONFIG
+              valueFrom:
+                configMapKeyRef:
+                  name: calico-config
+                  key: cni_network_config
+            # The location of the Calico etcd cluster.
+            - name: ETCD_ENDPOINTS
+              valueFrom:
+                configMapKeyRef:
+                  name: calico-config
+                  key: etcd_endpoints
+            # CNI MTU Config variable
+            - name: CNI_MTU
+              valueFrom:
+                configMapKeyRef:
+                  name: calico-config
+                  key: veth_mtu
+            # Prevents the container from sleeping forever.
+            - name: SLEEP
+              value: "false"
+          volumeMounts:
+            - mountPath: /host/opt/cni/bin
+              name: cni-bin-dir
+            - mountPath: /host/etc/cni/net.d
+              name: cni-net-dir
+            - mountPath: /calico-secrets
+              name: etcd-certs
       containers:
         # Runs calico/node container on each Kubernetes node.  This
         # container programs network policy and routes on each
         # host.
         - name: calico-node
-          image: quay.io/calico/node:v3.3.0
+          image: quay.io/calico/node:v3.4.0
           env:
             # The location of the Calico etcd cluster.
             - name: ETCD_ENDPOINTS
@@ -308,40 +274,6 @@ spec:
               readOnly: false
             - mountPath: /calico-secrets
               name: etcd-certs
-        # This container installs the Calico CNI binaries
-        # and CNI network config file on each node.
-        - name: install-cni
-          image: quay.io/calico/cni:v3.3.0
-          command: ["/install-cni.sh"]
-          env:
-            # Name of the CNI config file to create.
-            - name: CNI_CONF_NAME
-              value: "10-calico.conflist"
-            # The location of the Calico etcd cluster.
-            - name: ETCD_ENDPOINTS
-              valueFrom:
-                configMapKeyRef:
-                  name: calico-config
-                  key: etcd_endpoints
-            # The CNI network config to install on each node.
-            - name: CNI_NETWORK_CONFIG
-              valueFrom:
-                configMapKeyRef:
-                  name: calico-config
-                  key: cni_network_config
-            # CNI MTU Config variable
-            - name: CNI_MTU
-              valueFrom:
-                configMapKeyRef:
-                  name: calico-config
-                  key: veth_mtu
-          volumeMounts:
-            - mountPath: /host/opt/cni/bin
-              name: cni-bin-dir
-            - mountPath: /host/etc/cni/net.d
-              name: cni-net-dir
-            - mountPath: /calico-secrets
-              name: etcd-certs
       volumes:
         # Used by calico/node.
         - name: lib-modules
@@ -379,7 +311,6 @@ metadata:
   namespace: kube-system
 
 ---
-
 # This manifest deploys the Calico Kubernetes controllers.
 # See https://github.com/projectcalico/kube-controllers
 apiVersion: extensions/v1beta1
@@ -417,7 +348,7 @@ spec:
       serviceAccountName: calico-kube-controllers
       containers:
         - name: calico-kube-controllers
-          image: quay.io/calico/kube-controllers:v3.3.0
+          image: quay.io/calico/kube-controllers:v3.4.0
           env:
             # The location of the Calico etcd cluster.
             - name: ETCD_ENDPOINTS
@@ -470,6 +401,92 @@ kind: ServiceAccount
 metadata:
   name: calico-kube-controllers
   namespace: kube-system
+---
+
+# Include a clusterrole for the kube-controllers component,
+# and bind it to the calico-kube-controllers serviceaccount.
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: calico-kube-controllers
+rules:
+  # Pods are monitored for changing labels.
+  # The node controller monitors Kubernetes nodes.
+  # Namespace and serviceaccount labels are used for policy.
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - nodes
+      - namespaces
+      - serviceaccounts
+    verbs:
+      - watch
+      - list
+  # Watch for changes to Kubernetes NetworkPolicies.
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - networkpolicies
+    verbs:
+      - watch
+      - list
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: calico-kube-controllers
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: calico-kube-controllers
+subjects:
+- kind: ServiceAccount
+  name: calico-kube-controllers
+  namespace: kube-system
+---
+# Include a clusterrole for the calico-node DaemonSet,
+# and bind it to the calico-node serviceaccount.
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: calico-node
+rules:
+  # The CNI plugin needs to get pods, nodes, and namespaces.
+  - apiGroups: [""]
+    resources:
+      - pods
+      - nodes
+      - namespaces
+    verbs:
+      - get
+  - apiGroups: [""]
+    resources:
+      - endpoints
+      - services
+    verbs:
+      # Used to discover service IPs for advertisement.
+      - watch
+      - list
+  - apiGroups: [""]
+    resources:
+      - nodes/status
+    verbs:
+      # Needed for clearing NodeNetworkUnavailable flag.
+      - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: calico-node
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: calico-node
+subjects:
+- kind: ServiceAccount
+  name: calico-node
+  namespace: kube-system
 
 ---
 
@@ -498,21 +515,22 @@ spec:
       nodeSelector:
         node-role.kubernetes.io/master: ""
       tolerations:
-      # this taint is set by all kubelets running `--cloud-provider=external`
-      # so we should tolerate it to schedule the calico pods
-      - key: node-role.kubernetes.io/master
-        effect: NoSchedule
-      - key: node.cloudprovider.kubernetes.io/uninitialized
-        value: "true"
-        effect: NoSchedule
-      # Allow this pod to be rescheduled while the node is in "critical add-ons only" mode.
-      # This, along with the annotation above marks this pod as a critical add-on.
-      - key: CriticalAddonsOnly
-        operator: Exists
+        # This taint is set by all kubelets running `--cloud-provider=external`
+        # so we should tolerate it to schedule the Calico pods
+        - key: node.cloudprovider.kubernetes.io/uninitialized
+          value: "true"
+          effect: NoSchedule
+        # Allow this pod to run on the master.
+        - key: node-role.kubernetes.io/master
+          effect: NoSchedule
+        # Allow this pod to be rescheduled while the node is in "critical add-ons only" mode.
+        # This, along with the annotation above marks this pod as a critical add-on.
+        - key: CriticalAddonsOnly
+          operator: Exists
       hostNetwork: true
       containers:
         - name: calico-etcd
-          image: quay.io/coreos/etcd:v3.1.10
+          image: quay.io/coreos/etcd:v3.3.9
           env:
             - name: CALICO_ETCD_IP
               valueFrom:
@@ -523,7 +541,7 @@ spec:
           args:
           - --name=calico
           - --data-dir=/var/etcd/calico-data
-          - --advertise-client-urls=http://$CALICO_ETCD_IP:6666
+          - --advertise-client-urls=http://$(CALICO_ETCD_IP):6666
           - --listen-client-urls=http://0.0.0.0:6666
           - --listen-peer-urls=http://0.0.0.0:6667
           - --auto-compaction-retention=1
