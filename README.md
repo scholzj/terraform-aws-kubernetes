@@ -16,6 +16,7 @@ AWS Kubernetes is a Kubernetes cluster deployed using [Kubeadm](https://kubernet
 
 ## Updates
 
+* *28.12.2018* Update Kubernetes Dashboard to 1.10.1
 * *17.12.2018* Update to Kubernetes 1.13.1 and Calico 3.4.0
 * *8.12.2018:* Update to Kubernetes 1.13.0, added storage class for `st1` HDD disks, Ingress 0.21.0 and Cluster Autoscaler 1.13.0
 * *1.12.2018:* Update to Kubernetes 1.12.3 and External DNS 0.5.9
