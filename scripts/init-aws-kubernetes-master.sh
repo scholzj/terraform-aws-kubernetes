@@ -57,6 +57,8 @@ EOF
 is_enforced=$(getenforce)
 if [[ $is_enforced != "Disabled" ]]; then
   setenforce 0
+  sed -i 's/SELINUX=enforcing/SELINUX=permissive/g' /etc/sysconfig/selinux
+  
 fi
 
 yum install -y kubelet-$KUBERNETES_VERSION kubeadm-$KUBERNETES_VERSION kubernetes-cni
