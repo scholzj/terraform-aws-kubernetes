@@ -9,7 +9,7 @@ set -o pipefail
 export KUBEADM_TOKEN=${kubeadm_token}
 export MASTER_IP=${master_private_ip}
 export DNS_NAME=${dns_name}
-export KUBERNETES_VERSION="1.13.4"
+export KUBERNETES_VERSION="1.14.0"
 
 # Set this only after setting the defaults
 set -o nounset
@@ -44,9 +44,9 @@ fi
 yum install -y kubelet-$KUBERNETES_VERSION kubeadm-$KUBERNETES_VERSION kubernetes-cni
 
 # Fix kubelet configuration
-sed -i 's/--cgroup-driver=systemd/--cgroup-driver=cgroupfs/g' /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
-sed -i '/Environment="KUBELET_CGROUP_ARGS/i Environment="KUBELET_CLOUD_ARGS=--cloud-provider=aws"' /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
-sed -i 's/$KUBELET_CGROUP_ARGS/$KUBELET_CLOUD_ARGS $KUBELET_CGROUP_ARGS/g' /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+sed -i 's/--cgroup-driver=systemd/--cgroup-driver=cgroupfs/g' /usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf
+sed -i '/Environment="KUBELET_CGROUP_ARGS/i Environment="KUBELET_CLOUD_ARGS=--cloud-provider=aws"' /usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf
+sed -i 's/$KUBELET_CGROUP_ARGS/$KUBELET_CLOUD_ARGS $KUBELET_CGROUP_ARGS/g' /usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf
 
 # Start services
 systemctl enable docker
@@ -68,12 +68,14 @@ fi
 cat >/tmp/kubeadm.yaml <<EOF
 ---
 
-apiVersion: kubeadm.k8s.io/v1alpha3
+apiVersion: kubeadm.k8s.io/v1beta1
 kind: JoinConfiguration
-discoveryTokenAPIServers:
-  - $MASTER_IP:6443
-token: $KUBEADM_TOKEN
-discoveryTokenUnsafeSkipCAVerification: true
+discovery:
+  bootstrapToken:
+    apiServerEndpoint: $MASTER_IP:6443
+    token: $KUBEADM_TOKEN
+    unsafeSkipCAVerification: true
+  timeout: 5m0s
 nodeRegistration:
   criSocket: /var/run/dockershim.sock
   kubeletExtraArgs:
