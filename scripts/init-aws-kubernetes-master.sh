@@ -57,7 +57,7 @@ EOF
 is_enforced=$(getenforce)
 if [[ $is_enforced != "Disabled" ]]; then
   setenforce 0
-  sed -i 's/SELINUX=enforcing/SELINUX=permissive/g' /etc/sysconfig/selinux
+  sed -i 's/SELINUX=enforcing/SELINUX=permissive/g' /etc/selinux/config
   
 fi
 
