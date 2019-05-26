@@ -9,6 +9,9 @@ provisioner: kubernetes.io/aws-ebs
 parameters:
   type: gp2
   encrypted: "true"
+  fsType: "xfs"
+reclaimPolicy: Delete
+allowVolumeExpansion: true
 
 ---
 kind: StorageClass
@@ -19,3 +22,6 @@ provisioner: kubernetes.io/aws-ebs
 parameters:
   type: st1
   encrypted: "true"
+  fsType: "xfs"
+reclaimPolicy: Delete
+allowVolumeExpansion: true
