@@ -14,7 +14,7 @@ variable "tags" {
 
 variable "tags2" {
   description = "Tags in format used for the AWS Autoscaling Group"
-  type        = list(string)
+  type        = list(object({key = string, value = string, propagate_at_launch = bool}))
 }
 
 variable "addons" {
