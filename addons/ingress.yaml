@@ -6,7 +6,7 @@ metadata:
   name: ingress-nginx
 ---
 
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: default-http-backend
@@ -140,7 +140,7 @@ rules:
     verbs:
       - get
       - list
-      - watch  
+      - watch
   - apiGroups:
       - ""
     resources:
@@ -258,7 +258,7 @@ subjects:
     namespace: ingress-nginx
 ---
 
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nginx-ingress-controller
@@ -279,7 +279,7 @@ spec:
       serviceAccountName: nginx-ingress-serviceaccount
       containers:
         - name: nginx-ingress-controller
-          image: quay.io/kubernetes-ingress-controller/nginx-ingress-controller:0.25.0
+          image: quay.io/kubernetes-ingress-controller/nginx-ingress-controller:0.25.1
           args:
             - /nginx-ingress-controller
             - --default-backend-service=$(POD_NAMESPACE)/default-http-backend

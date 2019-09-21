@@ -132,7 +132,6 @@ Currently, following addons are supported:
 * External DNS (Replaces Route53 mapper)
 * Ingress
 * Autoscaler
-* Logging with Fluentd + ElasticSearch + Kibana
 
 The addons will be installed automatically based on the Terraform variables. 
 

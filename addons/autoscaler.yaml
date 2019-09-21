@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: cluster-autoscaler
@@ -22,7 +22,7 @@ spec:
       serviceAccountName: cluster-autoscaler
       containers:
         - name: cluster-autoscaler
-          image: gcr.io/google_containers/cluster-autoscaler:v1.15.1
+          image: gcr.io/google_containers/cluster-autoscaler:v1.15.2
           resources:
             limits:
               cpu: 100m
