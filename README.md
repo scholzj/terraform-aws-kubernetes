@@ -131,7 +131,7 @@ An example of how to include this can be found in the [examples](examples/) dir.
 Currently, following addons are supported:
 * Kubernetes dashboard
 * Heapster for resource monitoring
-* Storage class for automatic provisioning of persisitent volumes
+* Storage class for automatic provisioning of persistent volumes
 * External DNS (Replaces Route53 mapper)
 * Ingress
 * Autoscaler
