@@ -87,7 +87,7 @@ spec:
         emptyDir: {}
       containers:
       - name: metrics-server
-        image: k8s.gcr.io/metrics-server-amd64:v0.3.6
+        image: k8s.gcr.io/metrics-server/metrics-server:v0.3.7
         args:
           - --kubelet-insecure-tls
           - --kubelet-preferred-address-types=InternalIP
