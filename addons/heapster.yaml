@@ -42,6 +42,12 @@ spec:
         command:
         - /heapster
         - --source=kubernetes:https://kubernetes.default
+      nodeSelector:
+        node-role.kubernetes.io/master: ""
+      tolerations:
+        - key: "node-role.kubernetes.io/master"
+          effect: NoSchedule
+
 ---
 apiVersion: v1
 kind: Service
