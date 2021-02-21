@@ -279,7 +279,7 @@ spec:
       serviceAccountName: nginx-ingress-serviceaccount
       containers:
         - name: nginx-ingress-controller
-          image: k8s.gcr.io/ingress-nginx/controller:v0.35.0
+          image: k8s.gcr.io/ingress-nginx/controller:v0.44.0
           args:
             - /nginx-ingress-controller
             - --default-backend-service=$(POD_NAMESPACE)/default-http-backend
