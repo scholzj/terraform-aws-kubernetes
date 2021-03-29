@@ -105,7 +105,7 @@ systemctl restart containerd
 
 ########################################
 ########################################
-# Install Kubernetes compoenents
+# Install Kubernetes components
 ########################################
 ########################################
 sudo cat <<EOF > /etc/yum.repos.d/kubernetes.repo
@@ -115,11 +115,11 @@ baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
 enabled=1
 gpgcheck=1
 repo_gpgcheck=1
-gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg
-        https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+exclude=kubelet kubeadm kubectl
 EOF
 
-yum install -y kubelet-$KUBERNETES_VERSION kubeadm-$KUBERNETES_VERSION kubernetes-cni
+yum install -y kubelet-$KUBERNETES_VERSION kubeadm-$KUBERNETES_VERSION kubernetes-cni --disableexcludes=kubernetes
 
 # Start services
 systemctl enable kubelet
