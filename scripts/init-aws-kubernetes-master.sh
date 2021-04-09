@@ -16,7 +16,7 @@ export ASG_MAX_NODES="${asg_max_nodes}"
 export AWS_REGION=${aws_region}
 export AWS_SUBNETS="${aws_subnets}"
 export ADDONS="${addons}"
-export KUBERNETES_VERSION="1.20.4"
+export KUBERNETES_VERSION="1.21.0"
 
 # Set this only after setting the defaults
 set -o nounset
