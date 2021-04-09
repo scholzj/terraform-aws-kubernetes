@@ -21,6 +21,9 @@ rules:
 - apiGroups: [""]
   resources: ["pods"]
   verbs: ["get","watch","list"]
+- apiGroups: ["networking.k8s.io"] 
+  resources: ["ingresses"] 
+  verbs: ["get","watch","list"]
 - apiGroups: ["extensions"] 
   resources: ["ingresses"] 
   verbs: ["get","watch","list"]
@@ -71,7 +74,7 @@ spec:
       serviceAccountName: external-dns
       containers:
       - name: external-dns
-        image: k8s.gcr.io/external-dns/external-dns:v0.7.4
+        image: k8s.gcr.io/external-dns/external-dns:v0.7.6
         args:
         - --source=service
         - --source=ingress
