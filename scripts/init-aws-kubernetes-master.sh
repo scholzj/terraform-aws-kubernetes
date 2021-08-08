@@ -30,8 +30,8 @@ DNS_NAME=$(echo "$DNS_NAME" | tr 'A-Z' 'a-z')
 
 # Install AWS CLI client
 yum install -y epel-release
-yum install -y python2-pip
-pip install awscli --upgrade
+yum install -y python3-pip
+pip3 install --upgrade awscli
 
 ########################################
 ########################################
