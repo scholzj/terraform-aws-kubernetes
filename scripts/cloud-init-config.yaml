@@ -1,8 +1,0 @@
-#cloud-config
-#
-write_files:
-- encoding: gz+b64
-  content: ${calico_yaml}
-  owner: root:root
-  path: /tmp/calico.yaml
-  permissions: '0664'
