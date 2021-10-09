@@ -137,6 +137,7 @@ rules:
       - "networking.k8s.io"
     resources:
       - ingresses
+      - ingressclasses
     verbs:
       - get
       - list
@@ -211,7 +212,7 @@ rules:
       # Here: "<ingress-controller-leader>-<nginx>"
       # This has to be adapted if you change either parameter
       # when launching the nginx-ingress-controller.
-      - "ingress-controller-leader-nginx"
+      - "ingress-controller-leader"
     verbs:
       - get
       - update
@@ -279,7 +280,7 @@ spec:
       serviceAccountName: nginx-ingress-serviceaccount
       containers:
         - name: nginx-ingress-controller
-          image: k8s.gcr.io/ingress-nginx/controller:v0.47.0
+          image: k8s.gcr.io/ingress-nginx/controller:v1.0.3
           args:
             - /nginx-ingress-controller
             - --default-backend-service=$(POD_NAMESPACE)/default-http-backend
@@ -289,6 +290,7 @@ spec:
             - --publish-service=$(POD_NAMESPACE)/ingress-nginx
             - --annotations-prefix=nginx.ingress.kubernetes.io
             - --enable-ssl-passthrough
+            - --controller-class=k8s.io/ingress-nginx
           securityContext:
             capabilities:
                 drop:
@@ -331,3 +333,16 @@ spec:
             successThreshold: 1
             timeoutSeconds: 1
 ---
+
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  labels:
+    app: ingress-nginx
+  name: nginx
+  # Currently non-namespaced only
+  #namespace: ingress-nginx
+  annotations:
+    ingressclass.kubernetes.io/is-default-class: "true"
+spec:
+  controller: k8s.io/ingress-nginx

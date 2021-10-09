@@ -1,6 +1,6 @@
 ---
 kind: StorageClass
-apiVersion: storage.k8s.io/v1beta1
+apiVersion: storage.k8s.io/v1
 metadata:
   name: ssd
   annotations:
@@ -15,7 +15,7 @@ allowVolumeExpansion: true
 
 ---
 kind: StorageClass
-apiVersion: storage.k8s.io/v1beta1
+apiVersion: storage.k8s.io/v1
 metadata:
   name: hdd
 provisioner: kubernetes.io/aws-ebs
