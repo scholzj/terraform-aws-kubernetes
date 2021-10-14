@@ -86,6 +86,7 @@ mkdir -p /etc/containerd
 containerd config default > /etc/containerd/config.toml
 sed -i '/^          \[plugins\."io\.containerd\.grpc\.v1\.cri"\.containerd\.runtimes\.runc\.options\]/a \            SystemdCgroup = true' /etc/containerd/config.toml
 systemctl restart containerd
+systemctl enable containerd
 
 ########################################
 ########################################
