@@ -9,7 +9,7 @@ set -o pipefail
 export KUBEADM_TOKEN=${kubeadm_token}
 export MASTER_IP=${master_private_ip}
 export DNS_NAME=${dns_name}
-export KUBERNETES_VERSION="1.22.2"
+export KUBERNETES_VERSION="1.22.3"
 
 # Set this only after setting the defaults
 set -o nounset
@@ -64,6 +64,7 @@ mkdir -p /etc/containerd
 containerd config default > /etc/containerd/config.toml
 sed -i '/^          \[plugins\."io\.containerd\.grpc\.v1\.cri"\.containerd\.runtimes\.runc\.options\]/a \            SystemdCgroup = true' /etc/containerd/config.toml
 systemctl restart containerd
+systemctl enable containerd
 
 ########################################
 ########################################

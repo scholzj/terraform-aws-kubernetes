@@ -16,7 +16,7 @@ export ASG_MAX_NODES="${asg_max_nodes}"
 export AWS_REGION=${aws_region}
 export AWS_SUBNETS="${aws_subnets}"
 export ADDONS="${addons}"
-export KUBERNETES_VERSION="1.22.2"
+export KUBERNETES_VERSION="1.22.3"
 
 # Set this only after setting the defaults
 set -o nounset
@@ -87,22 +87,6 @@ containerd config default > /etc/containerd/config.toml
 sed -i '/^          \[plugins\."io\.containerd\.grpc\.v1\.cri"\.containerd\.runtimes\.runc\.options\]/a \            SystemdCgroup = true' /etc/containerd/config.toml
 systemctl restart containerd
 systemctl enable containerd
-
-########################################
-########################################
-# Install docker
-########################################
-########################################
-
-# yum install -y yum-utils device-mapper-persistent-data lvm2 docker
-
-# # Start services
-# systemctl enable docker
-# systemctl start docker
-
-# # Set settings needed by Docker
-# sysctl net.bridge.bridge-nf-call-iptables=1
-# sysctl net.bridge.bridge-nf-call-ip6tables=1
 
 ########################################
 ########################################
