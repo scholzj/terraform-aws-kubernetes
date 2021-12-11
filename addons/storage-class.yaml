@@ -2,14 +2,14 @@
 kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
-  name: ssd
+  name: aws-gp3
   annotations:
     storageclass.kubernetes.io/is-default-class: "true"
-provisioner: kubernetes.io/aws-ebs
+provisioner: ebs.csi.aws.com
 parameters:
-  type: gp2
+  type: gp3
   encrypted: "true"
-  fsType: "xfs"
+  csi.storage.k8s.io/fstype: xfs
 reclaimPolicy: Delete
 allowVolumeExpansion: true
 
@@ -17,11 +17,25 @@ allowVolumeExpansion: true
 kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
-  name: hdd
-provisioner: kubernetes.io/aws-ebs
+  name: aws-gp2
+provisioner: ebs.csi.aws.com
+parameters:
+  type: gp2
+  encrypted: "true"
+  csi.storage.k8s.io/fstype: xfs
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: aws-st1
+provisioner: ebs.csi.aws.com
+volumeBindingMode: WaitForFirstConsumer
 parameters:
   type: st1
   encrypted: "true"
-  fsType: "xfs"
+  csi.storage.k8s.io/fstype: xfs
 reclaimPolicy: Delete
 allowVolumeExpansion: true
