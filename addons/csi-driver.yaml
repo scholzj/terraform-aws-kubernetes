@@ -278,6 +278,11 @@ spec:
         app: ebs-csi-controller
         app.kubernetes.io/name: aws-ebs-csi-driver
     spec:
+      nodeSelector:
+        node-role.kubernetes.io/master: ""
+      tolerations:
+        - key: "node-role.kubernetes.io/master"
+          effect: NoSchedule
       serviceAccountName: ebs-csi-controller-sa
       priorityClassName: system-cluster-critical
       containers:
