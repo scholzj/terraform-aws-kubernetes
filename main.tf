@@ -266,7 +266,7 @@ data "aws_ami" "centos7" {
 
   filter {
     name   = "product-code"
-    values = ["aw0evgkw8e5c1q413zgy5pjce"]
+    values = ["aw0evgkw8e5c1q413zgy5pjce", "cvugziknvmxgqna9noibqnnsy"]
   }
 
   filter {
