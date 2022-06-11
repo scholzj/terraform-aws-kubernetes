@@ -48,7 +48,7 @@ spec:
           hostPath:
             path: /etc/ssl/certs/ca-certificates.crt
       nodeSelector:
-        node-role.kubernetes.io/master: ""
+        node-role.kubernetes.io/control-plane: ""
       tolerations:
         - key: "node-role.kubernetes.io/master"
           effect: NoSchedule

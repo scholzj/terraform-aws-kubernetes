@@ -279,7 +279,7 @@ spec:
         app.kubernetes.io/name: aws-ebs-csi-driver
     spec:
       nodeSelector:
-        node-role.kubernetes.io/master: ""
+        node-role.kubernetes.io/control-plane: ""
       tolerations:
         - key: "node-role.kubernetes.io/master"
           effect: NoSchedule
