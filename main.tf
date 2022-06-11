@@ -19,19 +19,13 @@ module "kubeadm-token" {
 # IAM roles
 #####
 
-# Master
-
-data "template_file" "master_policy_json" {
-  template = file("${path.module}/template/master-policy.json.tpl")
-
-  vars = {}
-}
+# Master nodes
 
 resource "aws_iam_policy" "master_policy" {
   name        = "${var.cluster_name}-master"
   path        = "/"
   description = "Policy for role ${var.cluster_name}-master"
-  policy      = data.template_file.master_policy_json.rendered
+  policy      = file("${path.module}/template/master-policy.json.tpl")
 }
 
 resource "aws_iam_role" "master_role" {
@@ -66,19 +60,13 @@ resource "aws_iam_instance_profile" "master_profile" {
   role = aws_iam_role.master_role.name
 }
 
-# Node
-
-data "template_file" "node_policy_json" {
-  template = file("${path.module}/template/node-policy.json.tpl")
-
-  vars = {}
-}
+# Worker nodes
 
 resource "aws_iam_policy" "node_policy" {
   name = "${var.cluster_name}-node"
   path = "/"
   description = "Policy for role ${var.cluster_name}-node"
-  policy = data.template_file.node_policy_json.rendered
+  policy = file("${path.module}/template/node-policy.json.tpl")
 }
 
 resource "aws_iam_role" "node_role" {
@@ -197,53 +185,25 @@ resource "aws_security_group_rule" "allow_api_from_cidr" {
 # Bootstraping scripts
 ##########
 
-data "template_file" "init_master" {
-  template = file("${path.module}/scripts/init-aws-kubernetes-master.sh")
-
-  vars = {
-    kubeadm_token = module.kubeadm-token.token
-    dns_name      = "${var.cluster_name}.${var.hosted_zone}"
-    ip_address    = aws_eip.master.public_ip
-    cluster_name  = var.cluster_name
-    addons        = join(" ", var.addons)
-    aws_region    = var.aws_region
-    asg_name      = "${var.cluster_name}-nodes"
-    asg_min_nodes = var.min_worker_count
-    asg_max_nodes = var.max_worker_count
-    aws_subnets   = join(" ", concat(var.worker_subnet_ids, [var.master_subnet_id]))
-  }
-}
-
-data "template_file" "init_node" {
-  template = file("${path.module}/scripts/init-aws-kubernetes-node.sh")
-
-  vars = {
-    kubeadm_token     = module.kubeadm-token.token
-    master_ip         = aws_eip.master.public_ip
-    master_private_ip = aws_instance.master.private_ip
-    dns_name          = "${var.cluster_name}.${var.hosted_zone}"
-  }
-}
-
-data "template_cloudinit_config" "master_cloud_init" {
+data "cloudinit_config" "master_cloud_init" {
   gzip          = true
   base64_encode = true
 
   part {
     filename     = "init-aws-kubernete-master.sh"
     content_type = "text/x-shellscript"
-    content      = data.template_file.init_master.rendered
+    content      = templatefile("${path.module}/scripts/init-aws-kubernetes-master.sh", { kubeadm_token = module.kubeadm-token.token, dns_name = "${var.cluster_name}.${var.hosted_zone}", ip_address = aws_eip.master.public_ip, cluster_name = var.cluster_name, addons = join(" ", var.addons), aws_region = var.aws_region, asg_name = "${var.cluster_name}-nodes", asg_min_nodes = var.min_worker_count, asg_max_nodes = var.max_worker_count, aws_subnets = join(" ", concat(var.worker_subnet_ids, [var.master_subnet_id])) } )
   }
 }
 
-data "template_cloudinit_config" "node_cloud_init" {
+data "cloudinit_config" "node_cloud_init" {
   gzip          = true
   base64_encode = true
 
   part {
     filename     = "init-aws-kubernetes-node.sh"
     content_type = "text/x-shellscript"
-    content      = data.template_file.init_node.rendered
+    content      = templatefile("${path.module}/scripts/init-aws-kubernetes-node.sh", { kubeadm_token = module.kubeadm-token.token, master_ip = aws_eip.master.public_ip, master_private_ip = aws_instance.master.private_ip, dns_name = "${var.cluster_name}.${var.hosted_zone}" } )
   }
 }
 
@@ -305,7 +265,7 @@ resource "aws_instance" "master" {
 
   iam_instance_profile = aws_iam_instance_profile.master_profile.name
 
-  user_data = data.template_cloudinit_config.master_cloud_init.rendered
+  user_data = data.cloudinit_config.master_cloud_init.rendered
 
   tags = merge(
     {
@@ -352,7 +312,7 @@ resource "aws_launch_configuration" "nodes" {
 
   associate_public_ip_address = var.public_worker
 
-  user_data = data.template_cloudinit_config.node_cloud_init.rendered
+  user_data = data.cloudinit_config.node_cloud_init.rendered
 
   root_block_device {
     volume_type           = "gp2"
