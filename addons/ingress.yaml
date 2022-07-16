@@ -101,66 +101,67 @@ metadata:
   name: nginx-ingress-clusterrole
 rules:
   - apiGroups:
-      - ""
+    - ""
     resources:
-      - configmaps
-      - endpoints
-      - nodes
-      - pods
-      - secrets
+    - configmaps
+    - endpoints
+    - nodes
+    - pods
+    - secrets
+    - namespaces
     verbs:
-      - list
-      - watch
+    - list
+    - watch
   - apiGroups:
-      - ""
+    - coordination.k8s.io
     resources:
-      - nodes
+    - leases
     verbs:
-      - get
+    - list
+    - watch
   - apiGroups:
-      - ""
+    - ""
     resources:
-      - services
+    - nodes
     verbs:
-      - get
-      - list
-      - watch
+    - get
   - apiGroups:
-      - "extensions"
+    - ""
     resources:
-      - ingresses
+    - services
     verbs:
-      - get
-      - list
-      - watch
+    - get
+    - list
+    - watch
   - apiGroups:
-      - "networking.k8s.io"
+    - networking.k8s.io
     resources:
-      - ingresses
-      - ingressclasses
+    - ingresses
     verbs:
-      - get
-      - list
-      - watch
+    - get
+    - list
+    - watch
   - apiGroups:
-      - ""
+    - ""
     resources:
-        - events
+    - events
     verbs:
-        - create
-        - patch
+    - create
+    - patch
   - apiGroups:
-      - "extensions"
+    - networking.k8s.io
     resources:
-      - ingresses/status
+    - ingresses/status
     verbs:
-      - update
+    - update
   - apiGroups:
-      - "networking.k8s.io"
+    - networking.k8s.io
     resources:
-      - ingresses/status
+    - ingressclasses
     verbs:
-      - update
+    - get
+    - list
+    - watch
 ---
 
 kind: Service
@@ -195,39 +196,89 @@ metadata:
   namespace: ingress-nginx
 rules:
   - apiGroups:
-      - ""
+    - ""
     resources:
-      - configmaps
-      - pods
-      - secrets
-      - namespaces
+    - namespaces
     verbs:
-      - get
+    - get
   - apiGroups:
-      - ""
+    - ""
     resources:
-      - configmaps
+    - configmaps
+    - pods
+    - secrets
+    - endpoints
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - ""
+    resources:
+    - services
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - networking.k8s.io
+    resources:
+    - ingresses
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - networking.k8s.io
+    resources:
+    - ingresses/status
+    verbs:
+    - update
+  - apiGroups:
+    - networking.k8s.io
+    resources:
+    - ingressclasses
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - ""
     resourceNames:
-      # Defaults to "<election-id>-<ingress-class>"
-      # Here: "<ingress-controller-leader>-<nginx>"
-      # This has to be adapted if you change either parameter
-      # when launching the nginx-ingress-controller.
-      - "ingress-controller-leader"
-    verbs:
-      - get
-      - update
-  - apiGroups:
-      - ""
+    - ingress-controller-leader
     resources:
-      - configmaps
+    - configmaps
     verbs:
-      - create
+    - get
+    - update
   - apiGroups:
-      - ""
+    - ""
     resources:
-      - endpoints
+    - configmaps
     verbs:
-      - get
+    - create
+  - apiGroups:
+    - coordination.k8s.io
+    resourceNames:
+    - ingress-controller-leader
+    resources:
+    - leases
+    verbs:
+    - get
+    - update
+  - apiGroups:
+    - coordination.k8s.io
+    resources:
+    - leases
+    verbs:
+    - create
+  - apiGroups:
+    - ""
+    resources:
+    - events
+    verbs:
+    - create
+    - patch
 ---
 
 apiVersion: rbac.authorization.k8s.io/v1
@@ -280,7 +331,7 @@ spec:
       serviceAccountName: nginx-ingress-serviceaccount
       containers:
         - name: nginx-ingress-controller
-          image: k8s.gcr.io/ingress-nginx/controller:v1.2.1
+          image: k8s.gcr.io/ingress-nginx/controller:v1.3.0
           args:
             - /nginx-ingress-controller
             - --default-backend-service=$(POD_NAMESPACE)/default-http-backend
@@ -291,6 +342,7 @@ spec:
             - --annotations-prefix=nginx.ingress.kubernetes.io
             - --enable-ssl-passthrough
             - --controller-class=k8s.io/ingress-nginx
+            - --election-id=ingress-controller-leader
           securityContext:
             capabilities:
                 drop:
