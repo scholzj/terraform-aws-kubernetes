@@ -16,7 +16,7 @@ export ASG_MAX_NODES="${asg_max_nodes}"
 export AWS_REGION=${aws_region}
 export AWS_SUBNETS="${aws_subnets}"
 export ADDONS="${addons}"
-export KUBERNETES_VERSION="1.24.4"
+export KUBERNETES_VERSION="1.25.0"
 
 # Set this only after setting the defaults
 set -o nounset
@@ -125,34 +125,39 @@ fi
 # Initialize the master
 cat >/tmp/kubeadm.yaml <<EOF
 ---
-apiVersion: kubeadm.k8s.io/v1beta2
+apiVersion: kubeadm.k8s.io/v1beta3
 kind: InitConfiguration
 bootstrapTokens:
-- groups:
-  - system:bootstrappers:kubeadm:default-node-token
-  token: $KUBEADM_TOKEN
-  ttl: 0s
-  usages:
-  - signing
-  - authentication
+  - groups:
+      - system:bootstrappers:kubeadm:default-node-token
+    token: $KUBEADM_TOKEN
+    ttl: 0s
+    usages:
+      - signing
+      - authentication
 nodeRegistration:
+  criSocket: unix:///var/run/containerd/containerd.sock
+  imagePullPolicy: IfNotPresent
   kubeletExtraArgs:
+    cgroup-driver: systemd
     cloud-provider: aws
     read-only-port: "10255"
-    cgroup-driver: systemd
   name: $FULL_HOSTNAME
   taints:
-  - effect: NoSchedule
-    key: node-role.kubernetes.io/master
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/master
+localAPIEndpoint:
+  advertiseAddress: $LOCAL_IP_ADDRESS
+  bindPort: 6443
 ---
-apiVersion: kubeadm.k8s.io/v1beta2
+apiVersion: kubeadm.k8s.io/v1beta3
 kind: ClusterConfiguration
 apiServer:
   certSANs:
-  - $DNS_NAME
-  - $IP_ADDRESS
-  - $LOCAL_IP_ADDRESS
-  - $FULL_HOSTNAME
+    - $DNS_NAME
+    - $IP_ADDRESS
+    - $LOCAL_IP_ADDRESS
+    - $FULL_HOSTNAME
   extraArgs:
     cloud-provider: aws
   timeoutForControlPlane: 5m0s
@@ -161,12 +166,10 @@ clusterName: kubernetes
 controllerManager:
   extraArgs:
     cloud-provider: aws
-dns:
-  type: CoreDNS
+dns: {}
 etcd:
   local:
     dataDir: /var/lib/etcd
-imageRepository: k8s.gcr.io
 kubernetesVersion: v$KUBERNETES_VERSION
 networking:
   dnsDomain: cluster.local
@@ -183,7 +186,8 @@ kubeadm init --config /tmp/kubeadm.yaml
 export KUBECONFIG=/etc/kubernetes/admin.conf
 
 # Install calico
-kubectl apply -f https://raw.githubusercontent.com/scholzj/terraform-aws-kubernetes/master/calico/calico.yaml
+kubectl create -f https://raw.githubusercontent.com/scholzj/terraform-aws-minikube/master/calico/calico-operator.yaml
+kubectl create -f https://raw.githubusercontent.com/scholzj/terraform-aws-minikube/master/calico/calico-cr.yaml
 
 ########################################
 ########################################

@@ -9,7 +9,7 @@ set -o pipefail
 export KUBEADM_TOKEN=${kubeadm_token}
 export MASTER_IP=${master_private_ip}
 export DNS_NAME=${dns_name}
-export KUBERNETES_VERSION="1.24.4"
+export KUBERNETES_VERSION="1.25.0"
 
 # Set this only after setting the defaults
 set -o nounset
@@ -118,7 +118,7 @@ fi
 ########################################
 cat >/tmp/kubeadm.yaml <<EOF
 ---
-apiVersion: kubeadm.k8s.io/v1beta2
+apiVersion: kubeadm.k8s.io/v1beta3
 kind: JoinConfiguration
 discovery:
   bootstrapToken:
