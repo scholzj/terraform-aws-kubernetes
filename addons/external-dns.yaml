@@ -68,8 +68,6 @@ spec:
       labels:
         app: external-dns
         k8s-addon: external-dns.alpha.kubernetes.io
-      annotations:
-        scheduler.alpha.kubernetes.io/critical-pod: "true"
     spec:
       serviceAccountName: external-dns
       containers:
