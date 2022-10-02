@@ -29,7 +29,7 @@ spec:
         # Any image is permissible as long as:
         # 1. It serves a 404 page at /
         # 2. It serves 200 on a /healthz endpoint
-        image: gcr.io/google_containers/defaultbackend:1.4
+        image: registry.k8s.io/defaultbackend-amd64:1.5
         livenessProbe:
           httpGet:
             path: /healthz
@@ -162,6 +162,14 @@ rules:
     - get
     - list
     - watch
+  - apiGroups:
+    - discovery.k8s.io
+    resources:
+    - endpointslices
+    verbs:
+    - list
+    - watch
+    - get
 ---
 
 kind: Service
@@ -279,6 +287,14 @@ rules:
     verbs:
     - create
     - patch
+  - apiGroups:
+    - discovery.k8s.io
+    resources:
+    - endpointslices
+    verbs:
+    - list
+    - watch
+    - get
 ---
 
 apiVersion: rbac.authorization.k8s.io/v1
@@ -331,7 +347,7 @@ spec:
       serviceAccountName: nginx-ingress-serviceaccount
       containers:
         - name: nginx-ingress-controller
-          image: k8s.gcr.io/ingress-nginx/controller:v1.3.0
+          image: registry.k8s.io/ingress-nginx/controller:v1.4.0
           args:
             - /nginx-ingress-controller
             - --default-backend-service=$(POD_NAMESPACE)/default-http-backend
