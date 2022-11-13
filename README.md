@@ -16,6 +16,7 @@ AWS Kubernetes is a Kubernetes cluster deployed using [Kubeadm](https://kubernet
 
 ## Updates
 
+* *13.11.2022* Update to Kubernetes 1.25.4 + update add-ons
 * *2.10.2022* Update to Kubernetes 1.25.2 + update add-ons
 * *26.8.2022* Update to Kubernetes 1.25.0 + Calico upgrade
 * *22.8.2022* Update to Kubernetes 1.24.4
