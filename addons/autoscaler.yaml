@@ -22,7 +22,7 @@ spec:
       serviceAccountName: cluster-autoscaler
       containers:
         - name: cluster-autoscaler
-          image: k8s.gcr.io/autoscaling/cluster-autoscaler:v1.21.0
+          image: registry.k8s.io/autoscaling/cluster-autoscaler:v1.26.2
           resources:
             limits:
               cpu: 100m
